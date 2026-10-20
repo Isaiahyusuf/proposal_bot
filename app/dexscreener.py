@@ -43,7 +43,7 @@ def extract_lead(profile: Dict[str, Any], pairs: List[Dict[str, Any]]) -> Option
     return {
         "official_links": list(dict.fromkeys(official)),
         "chain": profile["chainId"], "token_address": profile["tokenAddress"],
-        "project_name": base.get("name"), "token_symbol": base.get("symbol"),
+        "project_name": (base.get("name") or "").strip() or base.get("symbol"), "token_symbol": base.get("symbol"),
         "website": (websites[0].get("url") if websites else None) or _first(links, "website"),
         "telegram_link": _first(info.get("socials") or [], "telegram") or _first(links, "telegram"),
         "dexscreener_url": best.get("url"),

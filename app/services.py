@@ -288,7 +288,7 @@ def apply_account_error(db, acct: m.TelegramAccount, e: Exception) -> bool:
 
 def personalize(body: str, lead: m.Lead, candidate: Optional[m.Candidate]) -> str:
     return render_message(body, {
-        "project_name": lead.project_name, "token_symbol": lead.token_symbol, "blockchain": lead.chain,
+        "project_name": (lead.project_name or "").strip() or lead.token_symbol, "token_symbol": lead.token_symbol, "blockchain": lead.chain,
         "project_website": lead.website,
         "developer_username": ("@" + candidate.username)
         if candidate and candidate.category in discovery.CONFIRMED else None,  # only when verified

@@ -264,3 +264,12 @@ def test_transport_error_does_not_start_scan_cooldown(web, gw, db):
     gw.inspect_error = None
     a.post(f"/leads/{lead.id}/candidates")  # allowed straight away: the first lookup never completed
     assert db.query(m.Candidate).count() > 0
+
+
+def test_project_name_always_rendered_falls_back_to_symbol():
+    from app.templating import DEFAULT_TEMPLATE
+    lead = m.Lead(project_name="  ", token_symbol="MCAT", chain="solana")
+    out = s.personalize(DEFAULT_TEMPLATE, lead, None)
+    assert "MCAT" in out and "{" not in out
+    lead.project_name = "MoonCat"
+    assert "came across MoonCat on DexScreener" in s.personalize(DEFAULT_TEMPLATE, lead, None)

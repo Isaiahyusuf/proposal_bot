@@ -37,6 +37,8 @@ def _swap_status_check(statuses: str) -> None:
 
 def upgrade() -> None:
     """Upgrade schema."""
+    with op.batch_alter_table('outreach_records') as batch:
+        batch.create_unique_constraint('uq_outreach_id_user', ['id', 'user_id'])
     op.create_table('cleanup_actions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -56,8 +58,6 @@ def upgrade() -> None:
     op.add_column('outreach_records', sa.Column('telegram_message_id', sa.BigInteger(), nullable=True))
     op.add_column('outreach_records', sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True))
     _swap_status_check(NEW_STATUSES)
-    with op.batch_alter_table('outreach_records') as batch:
-        batch.create_unique_constraint('uq_outreach_id_user', ['id', 'user_id'])
     op.add_column('telegram_accounts', sa.Column('health_state', sa.String(length=20), server_default='unknown', nullable=False))
     op.add_column('telegram_accounts', sa.Column('health_detail', sa.Text(), nullable=True))
     op.add_column('telegram_accounts', sa.Column('health_source', sa.String(length=20), nullable=True))

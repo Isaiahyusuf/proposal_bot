@@ -250,3 +250,17 @@ def test_inspection_blocked_while_account_paused(web, gw, db):
     db.commit()
     inspect_lead(a, db, "a@x.com")
     assert getattr(gw, "inspected", []) == []
+
+
+def test_transport_error_does_not_start_scan_cooldown(web, gw, db):
+    from app.telegram_service import TelegramError
+    a = web().register("a@x.com").connect_telegram()
+    a.post("/leads/discover")
+    lead = db.query(m.Lead).filter_by(chain="solana").one()
+    gw.inspect_error = TelegramError("network hiccup")
+    a.post(f"/leads/{lead.id}/candidates")
+    db.refresh(lead)
+    assert lead.scanned_at is None
+    gw.inspect_error = None
+    a.post(f"/leads/{lead.id}/candidates")  # allowed straight away: the first lookup never completed
+    assert db.query(m.Candidate).count() > 0

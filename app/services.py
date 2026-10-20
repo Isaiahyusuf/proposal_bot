@@ -179,6 +179,7 @@ def find_candidates(db, user, lead: m.Lead, gw: TelegramGateway) -> int:
     last = aware(lead.scanned_at)
     if last and last + SCAN_COOLDOWN > utcnow():
         raise ServiceError("This group was inspected recently. Try again in a few minutes.")
+    previous_scan = lead.scanned_at
     lead.scanned_at = utcnow()
     try:
         insp = gw.inspect_group(creds_for(acct, user), lead.telegram_link)
@@ -188,6 +189,8 @@ def find_candidates(db, user, lead: m.Lead, gw: TelegramGateway) -> int:
         db.commit()
         raise ServiceError(lead.scan_note)
     except TelegramError as e:
+        # A failed lookup is not a completed scan; account-level errors pause the account instead.
+        lead.scanned_at = previous_scan
         apply_account_error(db, acct, e)
         db.commit()
         raise ServiceError(str(e))

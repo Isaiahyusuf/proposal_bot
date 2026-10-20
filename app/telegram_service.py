@@ -5,6 +5,8 @@ connected account can see; many admins have no public username and cannot be mes
 privacy settings may block messages; flood waits and PeerFlood limits apply. No account rotation
 or limit-bypass logic is implemented, by design.
 """
+
+import contextlib
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -114,9 +116,19 @@ class TelethonGateway:
         from telethon.sessions import StringSession
         return TelegramClient(StringSession(creds.session or None), creds.api_id, creds.api_hash)
 
+    @contextlib.asynccontextmanager
+    async def _connected(self, creds: Creds):
+        # `async with TelegramClient` would call start(), which prompts on stdin; connect() never prompts.
+        c = self._client(creds)
+        await c.connect()
+        try:
+            yield c
+        finally:
+            await c.disconnect()
+
     def send_code(self, creds, phone):
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 sent = await c.send_code_request(phone)
                 return sent.phone_code_hash, c.session.save()
         return self._wrap(go)
@@ -125,7 +137,7 @@ class TelethonGateway:
         from telethon.errors import SessionPasswordNeededError
 
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 try:
                     await c.sign_in(phone=phone, code=code, phone_code_hash=phone_code_hash)
                 except SessionPasswordNeededError:
@@ -142,7 +154,7 @@ class TelethonGateway:
         from telethon import functions, types
 
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 try:
                     entity = await c.get_entity(group_link)
                 except (E.ChannelPrivateError, E.ChannelInvalidError, E.InviteHashExpiredError,
@@ -210,7 +222,7 @@ class TelethonGateway:
 
     def send_message(self, creds, username, text):
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 entity = await c.get_entity(username)
                 ensure_private_user(entity)  # never post into a channel/group the user happens to admin
                 msg = await c.send_message(entity, text)
@@ -219,14 +231,14 @@ class TelethonGateway:
 
     def delete_messages(self, creds, username, message_ids, revoke):
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 await c.delete_messages(username, message_ids, revoke=revoke)
         return self._wrap(go)
 
     def check_spam_status(self, creds):
         """Ask Telegram's official @SpamBot for the account's status (a normal /start chat)."""
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 if not await c.is_user_authorized():
                     raise SessionInvalid("Telegram session is no longer authorized.")
                 try:
@@ -240,7 +252,7 @@ class TelethonGateway:
 
     def log_out(self, creds):
         async def go():
-            async with self._client(creds) as c:
+            async with self._connected(creds) as c:
                 await c.log_out()
         try:
             self._wrap(go)

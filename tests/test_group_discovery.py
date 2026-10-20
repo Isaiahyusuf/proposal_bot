@@ -273,3 +273,24 @@ def test_project_name_always_rendered_falls_back_to_symbol():
     assert "MCAT" in out and "{" not in out
     lead.project_name = "MoonCat"
     assert "came across MoonCat on DexScreener" in s.personalize(DEFAULT_TEMPLATE, lead, None)
+
+
+def test_gateway_connects_without_interactive_start(monkeypatch):
+    """Regression: `async with TelegramClient` calls start(), which prompts on stdin and hangs login."""
+    from app.telegram_service import Creds, TelethonGateway
+    events = []
+
+    class FakeClient:
+        session = type("S", (), {"save": staticmethod(lambda: "sess")})()
+
+        async def connect(self): events.append("connect")
+        async def disconnect(self): events.append("disconnect")
+        async def start(self, *a, **k): raise AssertionError("start() must never be called")
+        async def __aenter__(self): return await self.start()
+        async def send_code_request(self, phone):
+            return type("Sent", (), {"phone_code_hash": "h"})()
+
+    gw = TelethonGateway()
+    monkeypatch.setattr(gw, "_client", lambda creds: FakeClient())
+    assert gw.send_code(Creds(1, "hash"), "+15550001") == ("h", "sess")
+    assert events == ["connect", "disconnect"]

@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block content %}<h1>Telegram connection</h1>
+<div class="card muted"><b>How this works:</b> you sign in with your own Telegram account using Telegram's official login flow.
+Enter your own API ID/hash from <a href="https://my.telegram.org" target="_blank" rel="noopener">my.telegram.org</a>.
+Credentials and your session are encrypted at rest, belong only to your account, and are never shown again.
+Never share login codes with anyone else. <br><b>Limitations:</b> Telegram only exposes admins of groups your account can see, many have no public username,
+privacy settings and flood limits can block messages, and not every member can be inspected or messaged. This app does not rotate accounts or bypass limits.</div>
+{% if acct and acct.status == 'connected' %}
+<p>✅ Connected.</p>
+<form method="post" action="/settings/telegram/disconnect"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Disconnect &amp; delete session</button></form>
+{% else %}
+<form method="post" action="/settings/telegram/start"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label>API ID<input name="api_id" type="number" required></label>
+<label>API hash<input name="api_hash" type="password" autocomplete="off" required></label>
+<label>Phone (+countrycode…)<input name="phone" required></label><button>Send login code</button></form>
+{% if acct %}<h3>Enter the code</h3>
+<form method="post" action="/settings/telegram/verify"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label>Login code<input name="code" autocomplete="off" required></label>
+<label>Two-step verification password (only if enabled; sent straight to Telegram, never stored)<input name="password" type="password" autocomplete="off"></label>
+<button>Verify</button></form>{% endif %}{% endif %}{% endblock %}

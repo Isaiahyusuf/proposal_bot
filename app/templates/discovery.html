@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}<h1>Discovery &amp; sending preferences</h1>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label>Chains (comma separated, e.g. solana,ethereum; blank = all)<input name="chains" value="{{ p.chains }}"></label>
+<label>Minimum liquidity (USD)<input name="min_liquidity_usd" type="number" min="0" value="{{ p.min_liquidity_usd }}"></label>
+<label>Maximum pair age (hours)<input name="max_age_hours" type="number" min="1" value="{{ p.max_age_hours }}"></label>
+<label>Projects per discovery run (1-50)<input name="discovery_limit" type="number" min="1" max="50" value="{{ p.discovery_limit }}"></label>
+<label>Daily send limit (0-50)<input name="daily_limit" type="number" min="0" max="50" value="{{ p.daily_limit }}"></label>
+<label>Minimum seconds between messages (≥30)<input name="min_interval_seconds" type="number" min="30" value="{{ p.min_interval_seconds }}"></label>
+<label><input class="chk" type="checkbox" name="auto_approve_drafts" value="true" {{ 'checked' if p.auto_approve_drafts }}> Pre-approve new drafts (you still click Send for each)</label>
+<label><input class="chk" type="checkbox" name="sending_paused" value="true" {{ 'checked' if p.sending_paused }}> Pause all sending</label>
+<button>Save</button></form>{% endblock %}

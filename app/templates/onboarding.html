@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block content %}<h1>Getting started</h1>
+<ol>{% for name, done, link in steps %}<li>{{ '✅' if done else '⬜' }} {% if link %}<a href="{{ link }}">{{ name }}</a>{% else %}{{ name }}{% endif %}</li>{% endfor %}</ol>
+<p class="muted">Messages are only sent after you review and approve each one, using your own Telegram account.</p>{% endblock %}

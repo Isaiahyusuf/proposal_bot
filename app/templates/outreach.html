@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block content %}<h1>Review &amp; outreach history</h1>
+<p><a href="/account-health">Account health</a></p><p class="muted">Sent in last 24h: {{ sent_today }} / {{ prefs.daily_limit }}{% if prefs.sending_paused %} · <b>sending paused</b>{% endif %}</p>
+{% for r in recs %}<div class="card">{% set l = leads[r.lead_id] %}{% set c = cands.get(r.candidate_id) %}
+<b>@{{ r.recipient }}</b> · <i>{{ r.status|status_label }}</i>
+<div class="muted"><b>Project:</b> {{ l.project_name or 'Unnamed' }}{% if l.token_symbol %} ({{ l.token_symbol }}){% endif %} · {{ l.chain }}
+{% if l.website %}· {{ l.website }}{% endif %}{% if l.dexscreener_url %}· <a href="{{ l.dexscreener_url }}" target="_blank" rel="noopener">DexScreener</a>{% endif %}</div>
+{% if c %}<div class="muted"><b>Recipient:</b> {{ c.category|category_label }} · confidence {{ c.confidence }} · {{ c.verification_status|replace('_',' ') }}<br>
+<b>Evidence:</b> {{ c.evidence }}</div>
+{% if c.category not in ('confirmed_creator','confirmed_developer') %}<div class="flash err">This contact's role is not verified. Check the evidence before approving.</div>{% endif %}{% endif %}
+{% if r.error %}<span class="muted"> — {{ r.error }}</span>{% endif %}
+{% if r.status in ('draft','approved','failed','held') %}
+<form method="post" action="/outreach/{{ r.id }}/edit"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<textarea name="body" maxlength="4000">{{ r.body }}</textarea><button>Save edits</button></form>
+<form class="inline" method="post" action="/outreach/{{ r.id }}/approve"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Approve</button></form>
+<form class="inline" method="post" action="/outreach/{{ r.id }}/skip"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Skip</button></form>
+{% if r.status == 'approved' %}<form class="inline" method="post" action="/outreach/{{ r.id }}/send"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Send now</button></form>{% endif %}
+{% else %}{% if r.status == 'possible_block' %}<p class="muted">Telegram's error does not definitively confirm a block. Mark it yourself on the Cleanup page if you know.</p>{% endif %}<div class="preview">{{ r.body }}</div>{% endif %}</div>{% else %}<p>Nothing yet.</p>{% endfor %}{% endblock %}

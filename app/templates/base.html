@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proposal Bot</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:900px;margin:0 auto;padding:1rem;color:#222}
+nav{display:flex;gap:1rem;flex-wrap:wrap;border-bottom:1px solid #ddd;padding-bottom:.5rem;margin-bottom:1rem;align-items:center}
+nav form{margin-left:auto}
+textarea,input{width:100%;box-sizing:border-box;padding:.4rem;margin:.2rem 0 .6rem}
+textarea{min-height:10rem;font:inherit}
+.card{border:1px solid #ddd;border-radius:6px;padding:.8rem;margin:.8rem 0}
+.preview{background:#f4f6f8;white-space:pre-wrap;padding:.6rem;border-radius:4px}
+.flash{padding:.6rem;border-radius:4px;margin-bottom:1rem}.ok{background:#e6f6e6}.err{background:#fde8e8}
+button{padding:.4rem .8rem;cursor:pointer}.inline{display:inline}.muted{color:#666;font-size:.9em}
+.chk{width:auto}
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:1rem;font-weight:600}
+.s-healthy{background:#d4f5d4}.s-restricted,.s-connection_error{background:#fbd0d0}.s-flood_wait{background:#ffe8b8}.s-checking,.s-unknown{background:#e4e4e4}
+</style></head><body>
+{% if user %}<nav><a href="/onboarding">Onboarding</a><a href="/settings/message">Message</a>
+<a href="/settings/telegram">Telegram</a><a href="/settings/discovery">Discovery</a><a href="/leads">Leads</a>
+<a href="/outreach">Outreach</a><a href="/account-health">Account health</a><a href="/cleanup">Cleanup</a><a href="/dnc">Do not contact</a>
+<form method="post" action="/logout"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Log out ({{ user.email }})</button></form></nav>{% endif %}
+{% if flash %}<div class="flash {{ 'ok' if flash.ok else 'err' }}">{{ flash.msg }}</div>{% endif %}
+{% block content %}{% endblock %}
+</body></html>

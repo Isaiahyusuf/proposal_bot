@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}<h1>Do not contact</h1>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label>Telegram username<input name="username" required></label><label>Reason (optional)<input name="reason" maxlength="255"></label><button>Add</button></form>
+{% for r in rows %}<div class="card">@{{ r.username }} <span class="muted">[{{ r.source }}] {{ r.reason or '' }}</span>
+{% if r.source == 'manual' %}<form class="inline" method="post" action="/dnc/{{ r.id }}/delete"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Remove</button></form>{% else %}<span class="muted">(kept as suppression record)</span>{% endif %}</div>{% endfor %}{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}<h1>Review before deleting</h1>
+<p>These messages will be deleted from Telegram. This cannot be undone.</p>
+<form method="post" action="/cleanup/confirm"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+{% for r in recs %}<input type="hidden" name="ids" value="{{ r.id }}"><div class="card"><b>@{{ r.recipient }}</b><div class="preview">{{ r.body }}</div></div>{% endfor %}
+<label><input class="chk" type="checkbox" name="revoke" value="yes" checked> Also delete for the recipient (where Telegram permits)</label>
+<label><input class="chk" type="checkbox" name="confirm" value="yes" required> I confirm I want to delete these {{ recs|length }} message(s)</label>
+<button>Delete messages</button> <a href="/cleanup">Cancel</a></form>{% endblock %}

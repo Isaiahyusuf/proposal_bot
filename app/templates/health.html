@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block content %}<h1>Telegram account health</h1>
+<div class="card">
+<p>Status: <span class="badge s-{{ h.state }}">{{ h.label }}</span></p>
+<p>Telegram connection: {{ 'Connected' if h.connected else 'Not connected' }}</p>
+<p>Last health check: {{ h.checked_at.strftime('%Y-%m-%d %H:%M:%S UTC') if h.checked_at else 'Never' }}</p>
+<p>Outreach sending: <b>{{ 'Enabled' if h.sending_enabled else 'Paused' }}</b>{% if h.pause_reason %} <span class="muted">- {{ h.pause_reason }}</span>{% endif %}</p>
+{% if held %}<p class="muted">{{ held }} approved message(s) are held and preserved. They return to Approved when sending is permitted again.</p>{% endif %}
+{% if h.detail %}<p>Details from Telegram:</p><div class="preview">{{ h.detail }}</div>{% endif %}
+{% if h.retry_at %}<p>Next permitted retry (as given by Telegram): <b>{{ h.retry_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</b></p>{% endif %}
+<p>Recommended next action: {{ h.action }}</p>
+{% if h.connected %}<form method="post" action="/account-health/check"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Check Status</button></form>
+<p class="muted">Sends a normal /start message to Telegram's official @SpamBot from your account.
+{% if h.next_check_at %}Next check allowed after {{ h.next_check_at.strftime('%H:%M:%S UTC') }}.{% endif %}
+Checks run only when you click; nothing runs in the background. Unrecognized replies are shown as Unknown, never as clean.</p>{% endif %}
+</div>
+<p class="muted">Health is tracked per account. This page never switches accounts or works around a restriction.</p>{% endblock %}

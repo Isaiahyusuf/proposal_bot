@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% block content %}<h1>Conversations &amp; cleanup</h1>
+<p class="muted">Nothing is deleted automatically, and a restriction never triggers deletion. Mark contacts here, or select messages you sent to review and delete.
+Deleting only removes the messages from Telegram; your outreach record is kept for investigating delivery issues.</p>
+<form method="post" action="/cleanup/review"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+{% for r in recs %}<div class="card">
+{% if r.status == 'sent' and r.telegram_message_id and not r.deleted_at %}<input class="chk" type="checkbox" name="ids" value="{{ r.id }}">{% endif %}
+<b>@{{ r.recipient }}</b> · <i>{{ r.status|status_label }}</i>{% if r.deleted_at %} · deleted from Telegram{% endif %}
+{% if sup.get(r.recipient) %} · <b>suppressed ({{ sup[r.recipient].source }})</b>{% endif %}
+{% if r.error %}<div class="muted">{{ r.error }}</div>{% endif %}
+<div class="preview">{{ r.body }}</div>
+{% for o, label in [('declined','Declined further contact'),('blocked','Blocked me'),('dnc','Do not contact')] %}
+<button type="submit" formaction="/conversations/{{ r.id }}/mark" name="outcome" value="{{ o }}">{{ label }}</button>{% endfor %}
+</div>{% else %}<p>No conversations yet.</p>{% endfor %}
+{% if recs %}<button>Review selected for deletion</button>{% endif %}</form>
+<h2>Cleanup log</h2>
+{% for a in actions %}<div class="muted">{{ a.created_at.strftime('%Y-%m-%d %H:%M') }} · message #{{ a.outreach_id }} · {{ a.result }}{% if a.detail %} - {{ a.detail }}{% endif %}</div>{% else %}<p class="muted">No cleanup actions yet.</p>{% endfor %}
+{% endblock %}

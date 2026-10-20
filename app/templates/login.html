@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}<h1>Log in</h1>
+<form method="post"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label>Email<input name="email" type="email" required autocomplete="username"></label>
+<label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+<button>Log in</button></form><p><a href="/register">Create an account</a></p>{% endblock %}

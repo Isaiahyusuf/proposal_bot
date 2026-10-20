@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block content %}<h1>Leads</h1>
+<form method="post" action="/leads/discover"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Discover projects</button></form>
+<p class="muted">Contacts come only from what Telegram exposes to your account (administrators, the group-creation message) and public project links.
+Telegram does not reveal the original creator in most groups; the current owner is shown as a <i>possible</i> owner, never as the creator.</p>
+{% for l in leads %}<div class="card"><b>{{ l.project_name or 'Unnamed' }}</b> {% if l.token_symbol %}({{ l.token_symbol }}){% endif %} · {{ l.chain }}
+{% if l.dexscreener_url %}· <a href="{{ l.dexscreener_url }}" target="_blank" rel="noopener">DexScreener</a>{% endif %}
+{% if l.website %}· <span class="muted">{{ l.website }}</span>{% endif %}<br>
+{% if l.telegram_link %}<span class="muted">Telegram: {{ l.telegram_link }}</span>
+<form class="inline" method="post" action="/leads/{{ l.id }}/candidates"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>{{ 'Re-inspect group' if l.scan_status != 'not_scanned' else 'Inspect group' }}</button></form>
+{% else %}<span class="muted">No Telegram link available.</span>{% endif %}
+{% if l.scan_status == 'inaccessible' %}<div class="flash err">Group not accessible. {{ l.scan_note }}</div>
+{% elif l.scan_status == 'scanned' %}{% if l.needs_manual_review %}<div class="flash err"><b>Manual review needed:</b> no confirmed creator or developer.</div>{% endif %}
+<div class="muted">{{ l.scan_note }}</div>{% endif %}
+{% for c, pv, drafted in by_lead.get(l.id, []) %}<div class="card">
+<b>@{{ c.username }}</b> <span class="badge s-{{ 'healthy' if c.category in ('confirmed_creator','confirmed_developer') else 'unknown' }}">{{ c.category|category_label }}</span>
+· confidence: {{ c.confidence }} · {{ c.verification_status|replace('_',' ') }}
+<div class="muted">Observed role: {{ c.role }}</div>
+<div class="muted">Evidence: {{ c.evidence }}</div>
+<div class="preview">{{ pv }}</div>
+{% if drafted %}<span class="muted">Outreach already exists</span>{% else %}
+<form method="post" action="/candidates/{{ c.id }}/draft"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Create draft for review</button></form>{% endif %}</div>{% endfor %}
+<form method="post" action="/leads/{{ l.id }}/contacts"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<input name="username" placeholder="Add a public contact manually (@username)" required style="width:45%"> <input name="note" placeholder="Where you found them (optional)" style="width:35%"> <button>Add</button></form>
+</div>{% else %}<p>No leads yet.</p>{% endfor %}{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block content %}<h1>Message settings</h1>
+<p>This is the first message sent to a project developer. Supported variables:
+{% for v in variables %}<code>{{ '{' ~ v ~ '}' }}</code> {% endfor %}</p>
+<p class="muted">Variables are only filled in when the data is verified; missing ones are removed cleanly.</p>
+<form method="post" id="f"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+<textarea name="body" id="body" maxlength="2000" required>{{ body }}</textarea>
+<p>{% for v in variables %}<button type="button" onclick="ins('{{ '{' ~ v ~ '}' }}')">{{ '{' ~ v ~ '}' }}</button> {% endfor %}</p>
+<button>Save</button> <button type="button" onclick="prev()">Preview</button></form>
+<form method="post" action="/settings/message/reset" onsubmit="return confirm('Restore the default template?')">
+<input type="hidden" name="csrf_token" value="{{ csrf }}"><button>Restore default</button></form>
+<h3>Preview (sample data)</h3><div class="preview" id="preview">{{ preview }}</div><p id="err" class="muted"></p>
+<script>
+const b=document.getElementById('body');
+function ins(t){const s=b.selectionStart;b.setRangeText(t,s,b.selectionEnd,'end');b.focus();prev()}
+async function prev(){const fd=new FormData(document.getElementById('f'));
+const r=await fetch('/settings/message/preview',{method:'POST',body:fd});const j=await r.json();
+document.getElementById('preview').textContent=j.preview;document.getElementById('err').textContent=j.error||''}
+b.addEventListener('input',prev);
+</script>{% endblock %}
